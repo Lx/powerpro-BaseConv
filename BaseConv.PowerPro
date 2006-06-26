@@ -1,0 +1,83 @@
+;
+; BaseConv v1.0
+; Written by Alex Peters, 11/6/2005
+;
+; Performs conversions between number bases such as binary, octal, decimal,
+; hex and any other base between 2 and 36. Works with numbers in the range of
+; 0 to (2^63 - 1) (over 9 million trillion in decimal).
+;
+; Demonstration:
+;   *  .BaseConv()
+;
+; Usage examples:
+;   *  decimal = .BaseConv@toDecimal("6699ff", 16)
+;   *  binary = .BaseConv@fromDecimal(170, 2)
+;   *  octalFromHex = .BaseConv@toAny(8, "a72e", 16)
+;
+; Please feel welcome to copy the subroutines into your own scripts.
+;
+; All feedback is encouraged on the PowerPro discussion list:
+;   *  http://groups.yahoo.com/group/power-pro
+;   *  Please share with us how this script is being put to good use!
+; ____________________________________________________________________________
+
+local TITLE = ?"BaseConv Demonstration"
+
+local inValue = 703710
+local inBase = 10
+local outBase = 16
+local outValue, validInput, ok
+
+for (not(validInput))
+    ok = inputDialog(?"~inValue=Positive input value:,inBase=Input base (2-36):,outBase=Output base (2-36):", TITLE)
+    if (not(ok))
+        quit
+    if (not(inValue > 0)) do
+        messageBox(?"warning", ?"Please enter a positive input value.", TITLE)
+    elseIf (inBase < 2 || outBase < 2 || inBase > 36 || outBase > 36)
+        messageBox(?"warning", ?"Please enter bases between 2 and 36.", TITLE)
+    else
+        validInput = 1
+    endIf
+endFor
+
+; Convert into base outBase what is represented as inValue in base inBase.
+outValue = .@toAny(outBase, inValue, inBase)
+
+messageBox(?"asterisk", inValue ++ ?" in base " ++ inBase ++ ?" is equivalent to " ++ outValue ++ ?" in base " ++ outBase ++ ?".", TITLE)
+quit
+
+@toDecimal
+
+    local value = arg(1)
+    local base = arg(2)
+
+    local out = 0
+    for (value != "")
+        out = Int64.add(Int64.mul(out, base), index(?"123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", select(value, 1)))
+        value = remove(value, 1)
+    endFor
+    quit (out)
+
+@fromDecimal
+
+    local value = arg(1)
+    local base = arg(2)
+
+    local out = ""
+    for (value > 0)
+        out = select(select(?"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", Int64.sub(value, Int64.mul(Int64.divide(value, base), base)) + 1), -1) ++ out
+        value = Int64.divide(value, base)
+    endFor
+    quit (out)
+
+@toAny
+
+    local outBase = arg(1)
+    local inValue = arg(2)
+    local inBase = arg(3)
+
+    local decValue, outValue
+    decValue = .@toDecimal(inValue, inBase)
+    outValue = .@fromDecimal(decValue, outBase)
+    quit (outValue)
